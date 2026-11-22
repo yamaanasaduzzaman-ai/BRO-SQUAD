@@ -1,0 +1,398 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <meta name="theme-color" content="#070c17">
+  <meta name="description" content="BRO SQUAD - Premium Shared Room Expense and Settlement Manager">
+  
+  <!-- PWA & Mobile Meta -->
+  <link rel="manifest" href="/manifest.json">
+  <link rel="icon" type="image/svg+xml" href="/icons/icon.svg">
+  <link rel="apple-touch-icon" href="/icons/icon.svg">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="BRO SQUAD">
+
+  <title>BRO SQUAD - Shared Room Expense Manager</title>
+  <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+
+  <!-- Toast Notification System -->
+  <div id="toastContainer" class="toast-container" aria-live="polite"></div>
+
+  <!-- Main Application Shell -->
+  <div class="app-viewport">
+
+    <!-- Top Sticky Header -->
+    <header class="app-header">
+      <div class="brand-wrapper">
+        <div class="brand-badge">
+          <svg viewBox="0 0 24 24">
+            <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
+          </svg>
+        </div>
+        <div class="brand-info">
+          <h1>BRO SQUAD</h1>
+          <p id="roomNameLabel">Shared Room Expense</p>
+        </div>
+      </div>
+
+      <div class="header-actions">
+        <!-- Live Cloud Sync Pill -->
+        <div id="syncPill" class="sync-pill">
+          <span class="sync-dot"></span>
+          <span id="syncText">Connected</span>
+        </div>
+        <!-- User Avatar / Profile Button -->
+        <button id="userProfileBtn" class="user-avatar-btn" title="Member Account">BS</button>
+      </div>
+    </header>
+
+    <!-- =========================================================================
+         VIEW 1: DASHBOARD
+         ========================================================================= -->
+    <main id="viewDashboard" class="app-view">
+      
+      <!-- Total Room Expense Hero Card -->
+      <section class="glass-panel hero-balance-card">
+        <div class="hero-header">
+          <span class="hero-label">Total Room Expenses</span>
+          <span id="currentMonthBadge" class="stance-badge badge-settled">Current Month</span>
+        </div>
+        <div class="hero-amount">
+          <span class="curr">৳</span>
+          <span id="heroTotalExpense">0.00</span>
+        </div>
+        
+        <div class="hero-stats-grid">
+          <div class="stat-item">
+            <span class="stat-label">Total Paid</span>
+            <span id="heroTotalPaid" class="stat-val text-emerald">৳0.00</span>
+          </div>
+          <div class="stat-item">
+            <span class="stat-label">Total Settled</span>
+            <span id="heroTotalSettled" class="stat-val">৳0.00</span>
+          </div>
+          <div class="stat-item">
+            <span class="stat-label">Expenses Count</span>
+            <span id="heroExpenseCount" class="stat-val">0</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- Logged-in User's Personal Stance -->
+      <section class="personal-stance-card">
+        <div class="stance-left">
+          <span class="stance-title">My Financial Stance</span>
+          <span id="myMemberName" class="stance-member-name">Loading...</span>
+        </div>
+        <div id="myNetBadge" class="stance-badge badge-settled">
+          Calculating...
+        </div>
+      </section>
+
+      <!-- 4 Room Members Overview -->
+      <div class="section-heading">
+        <span class="section-title">Squad Overview</span>
+        <span class="section-link" id="viewAllBalancesBtn">4 Members</span>
+      </div>
+
+      <section class="members-grid" id="membersGrid">
+        <!-- Dynamically populated 4 Member Cards: Asaduzzaman, Abdullah, Md Milon, Md Monir -->
+      </section>
+
+      <!-- Quick Recent Expenses -->
+      <div class="section-heading">
+        <span class="section-title">Recent Transactions</span>
+        <span class="section-link" id="viewMoreExpensesBtn">View All</span>
+      </div>
+
+      <section class="transactions-container" id="recentTransactionsList">
+        <div class="text-muted" style="text-align: center; padding: 24px;">Loading transactions...</div>
+      </section>
+
+    </main>
+
+    <!-- =========================================================================
+         VIEW 2: ALL EXPENSES & FILTERS
+         ========================================================================= -->
+    <main id="viewExpenses" class="app-view hidden">
+      <div class="glass-panel" style="margin-bottom: 8px;">
+        <div class="form-group" style="margin-bottom: 10px;">
+          <input type="text" id="expenseSearchInput" class="form-control" placeholder="Search description, payer, category...">
+        </div>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
+          <select id="expenseFilterCategory" class="form-control">
+            <option value="ALL">All Categories</option>
+            <option value="Breakfast">Breakfast</option>
+            <option value="Lunch">Lunch</option>
+            <option value="Dinner">Dinner</option>
+            <option value="Evening Snacks">Evening Snacks</option>
+            <option value="Snacks">Snacks</option>
+            <option value="Groceries">Groceries</option>
+            <option value="Other">Other</option>
+          </select>
+          <select id="expenseFilterPeriod" class="form-control">
+            <option value="THIS_MONTH">This Month</option>
+            <option value="PREV_MONTH">Previous Month</option>
+            <option value="TODAY">Today</option>
+            <option value="LAST_7_DAYS">Last 7 Days</option>
+            <option value="ALL">All Time</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="section-heading">
+        <span class="section-title">Transaction History</span>
+        <span id="filteredCountLabel" class="text-muted" style="font-size: 0.8rem;">0 entries</span>
+      </div>
+
+      <section class="transactions-container" id="allTransactionsList">
+        <!-- Complete Transaction List -->
+      </section>
+    </main>
+
+    <!-- =========================================================================
+         VIEW 3: AUTOMATIC SETTLEMENTS
+         ========================================================================= -->
+    <main id="viewSettlements" class="app-view hidden">
+      <section class="glass-panel">
+        <h2 style="font-size: 1.15rem; font-weight: 800; margin-bottom: 6px;">Smart Settlement Engine</h2>
+        <p class="text-muted" style="font-size: 0.82rem; margin-bottom: 16px;">
+          Calculated using member net balances. Minimum transactions required to balance the room.
+        </p>
+        <div id="settlementSuggestionsList" style="display: flex; flex-direction: column; gap: 10px;">
+          <!-- Suggested Payments Cards -->
+        </div>
+      </section>
+
+      <div class="section-heading">
+        <span class="section-title">Settlement History</span>
+      </div>
+      <section class="transactions-container" id="settlementHistoryList">
+        <!-- Completed Settlements -->
+      </section>
+    </main>
+
+    <!-- =========================================================================
+         VIEW 4: MEMBER REPORTS & ANALYTICS
+         ========================================================================= -->
+    <main id="viewReports" class="app-view hidden">
+      <section class="glass-panel">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px;">
+          <h2 style="font-size: 1.15rem; font-weight: 800;">Member Financial Report</h2>
+          <button id="exportCsvBtn" class="btn-secondary" style="width: auto; padding: 6px 12px; font-size: 0.78rem;">
+            Export CSV
+          </button>
+        </div>
+        <div id="reportsTableContainer">
+          <!-- Member breakdown metrics -->
+        </div>
+      </section>
+
+      <section class="glass-panel">
+        <h3 style="font-size: 1rem; font-weight: 700; margin-bottom: 12px;">Category Spending</h3>
+        <div id="categoryBreakdownContainer" style="display: flex; flex-direction: column; gap: 8px;">
+          <!-- Category bars -->
+        </div>
+      </section>
+    </main>
+
+    <!-- =========================================================================
+         VIEW 5: SETTINGS & BACKUP
+         ========================================================================= -->
+    <main id="viewSettings" class="app-view hidden">
+      <section class="glass-panel">
+        <h2 style="font-size: 1.15rem; font-weight: 800; margin-bottom: 12px;">Account & Room</h2>
+        <div class="form-group">
+          <label class="form-label">Logged In User</label>
+          <input type="text" id="settingsEmailField" class="form-control" readonly>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Active Room</label>
+          <input type="text" id="settingsRoomField" class="form-control" value="BRO SQUAD (bro-squad-main)" readonly>
+        </div>
+        <button id="logoutBtn" class="btn-secondary" style="border-color: rgba(239, 68, 68, 0.4); color: var(--rose-400);">
+          Sign Out of BRO SQUAD
+        </button>
+      </section>
+
+      <section class="glass-panel">
+        <h3 style="font-size: 1rem; font-weight: 700; margin-bottom: 8px;">Permanent Backup & Restore</h3>
+        <p class="text-muted" style="font-size: 0.8rem; margin-bottom: 14px;">
+          Download a complete offline JSON copy of all room expenses and settlements to your phone or Google Drive.
+        </p>
+        <div style="display: flex; flex-direction: column; gap: 10px;">
+          <button id="downloadBackupBtn" class="btn-primary">Download JSON Backup</button>
+          
+          <label class="btn-secondary" style="cursor: pointer;">
+            Restore Backup from JSON
+            <input type="file" id="restoreBackupInput" accept=".json" style="display: none;">
+          </label>
+        </div>
+      </section>
+
+      <section class="glass-panel" style="font-size: 0.8rem; color: var(--text-muted);">
+        <p><strong>Cloud Architecture:</strong> Google Cloud Firestore (Spark Plan)</p>
+        <p><strong>Currency:</strong> BDT (৳) with exact integer paisa arithmetic</p>
+        <p><strong>App Version:</strong> BRO SQUAD v1.0.0 (Production Mobile Edition)</p>
+      </section>
+    </main>
+
+  </div>
+
+  <!-- =========================================================================
+       FLOATING QUICK-ADD BUTTON
+       ========================================================================= -->
+  <button id="quickAddExpenseBtn" class="quick-add-btn" aria-label="Add New Expense">
+    <svg viewBox="0 0 24 24">
+      <line x1="12" y1="5" x2="12" y2="19"></line>
+      <line x1="5" y1="12" x2="19" y2="12"></line>
+    </svg>
+  </button>
+
+  <!-- =========================================================================
+       BOTTOM NAVIGATION BAR
+       ========================================================================= -->
+  <nav class="bottom-nav">
+    <div class="nav-item active" data-target="viewDashboard">
+      <svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path></svg>
+      <span>Dashboard</span>
+    </div>
+    <div class="nav-item" data-target="viewExpenses">
+      <svg viewBox="0 0 24 24"><line x1="8" y1="6" x2="21" y2="6"></line><line x1="8" y1="12" x2="21" y2="12"></line><line x1="8" y1="18" x2="21" y2="18"></line><line x1="3" y1="6" x2="3.01" y2="6"></line><line x1="3" y1="12" x2="3.01" y2="12"></line><line x1="3" y1="18" x2="3.01" y2="18"></line></svg>
+      <span>Expenses</span>
+    </div>
+    <div class="nav-item" data-target="viewSettlements">
+      <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+      <span>Settle</span>
+    </div>
+    <div class="nav-item" data-target="viewReports">
+      <svg viewBox="0 0 24 24"><path d="M18 20V10M12 20V4M6 20v-6"></path></svg>
+      <span>Reports</span>
+    </div>
+    <div class="nav-item" data-target="viewSettings">
+      <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+      <span>Settings</span>
+    </div>
+  </nav>
+
+  <!-- =========================================================================
+       MODAL 1: ADD / EDIT EXPENSE
+       ========================================================================= -->
+  <div id="expenseModal" class="modal-overlay">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2 id="expenseModalTitle" class="modal-title">Add Expense</h2>
+        <button id="closeExpenseModalBtn" class="modal-close-btn">&times;</button>
+      </div>
+
+      <form id="expenseForm">
+        <input type="hidden" id="editExpenseId">
+
+        <!-- Amount -->
+        <div class="form-group">
+          <label class="form-label" for="expenseAmount">Amount (BDT)</label>
+          <div class="amount-input-wrapper">
+            <span class="currency-symbol">৳</span>
+            <input type="number" id="expenseAmount" class="form-control" placeholder="0.00" step="0.01" min="1" required>
+          </div>
+        </div>
+
+        <!-- Category -->
+        <div class="form-group">
+          <label class="form-label" for="expenseCategory">Category</label>
+          <select id="expenseCategory" class="form-control" required>
+            <option value="Dinner">Dinner</option>
+            <option value="Lunch">Lunch</option>
+            <option value="Breakfast">Breakfast</option>
+            <option value="Evening Snacks">Evening Snacks</option>
+            <option value="Snacks">Snacks</option>
+            <option value="Groceries">Groceries</option>
+            <option value="Other">Other</option>
+          </select>
+        </div>
+
+        <!-- Paid By -->
+        <div class="form-group">
+          <label class="form-label" for="expensePayer">Paid By (Who paid the cash?)</label>
+          <select id="expensePayer" class="form-control" required>
+            <!-- Member options populated in JS -->
+          </select>
+        </div>
+
+        <!-- Shared Between (Participants) -->
+        <div class="form-group">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
+            <label class="form-label" style="margin-bottom: 0;">Shared Between (Participants)</label>
+            <span id="selectAllParticipantsBtn" style="font-size: 0.76rem; color: var(--emerald-400); cursor: pointer; font-weight: 600;">Select All 4</span>
+          </div>
+          
+          <div class="participants-selector" id="participantsCheckboxes">
+            <!-- 4 Checkbox Pills populated in JS -->
+          </div>
+          <div id="splitPreviewText" style="margin-top: 8px; font-size: 0.78rem; color: var(--emerald-400); font-weight: 600;">
+            Estimated share: ৳0.00 each
+          </div>
+        </div>
+
+        <!-- Date & Time -->
+        <div class="form-group">
+          <label class="form-label" for="expenseDate">Date & Time</label>
+          <input type="datetime-local" id="expenseDate" class="form-control" required>
+        </div>
+
+        <!-- Description -->
+        <div class="form-group">
+          <label class="form-label" for="expenseDesc">Description (Optional)</label>
+          <input type="text" id="expenseDesc" class="form-control" placeholder="e.g. Chicken Polao, Eggs, Milk">
+        </div>
+
+        <button type="submit" id="saveExpenseBtn" class="btn-primary">
+          Save Expense
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- =========================================================================
+       MODAL 2: AUTHENTICATION / LOGIN
+       ========================================================================= -->
+  <div id="authModal" class="modal-overlay">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2 class="modal-title">Member Sign In</h2>
+      </div>
+
+      <p class="text-muted" style="font-size: 0.85rem; margin-bottom: 18px;">
+        Sign in with your BRO SQUAD member account.
+      </p>
+
+      <form id="loginForm">
+        <div class="form-group">
+          <label class="form-label" for="loginEmail">Email Address</label>
+          <input type="email" id="loginEmail" class="form-control" placeholder="asaduzzaman@example.com" required>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="loginPassword">Password</label>
+          <input type="password" id="loginPassword" class="form-control" placeholder="••••••••" required>
+        </div>
+
+        <div style="display: flex; justify-content: flex-end; margin-bottom: 16px;">
+          <span id="forgotPasswordBtn" style="font-size: 0.8rem; color: var(--blue-400); cursor: pointer;">Forgot Password?</span>
+        </div>
+
+        <button type="submit" id="submitLoginBtn" class="btn-primary">
+          Sign In to BRO SQUAD
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Core App Logic (Modular Firebase) -->
+  <script type="module" src="/app.js"></script>
+</body>
+</html>
